@@ -1,46 +1,43 @@
 # 🚀 섹터 ETF 감성분석 대시보드
 
-미국 주식 시장의 11개 섹터 ETF에 대한 실시간 뉴스 감성 분석 시스템
+미국 주식 시장 11개 섹터 ETF의 실시간 뉴스 감성 분석 시스템
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://YOUR-APP-NAME.streamlit.app)
 
 ## 📊 주요 기능
 
-### 1. 섹터별 감성 점수
+### 🎯 핵심 기능
 - **11개 섹터 ETF** 실시간 모니터링
-- Simple Average & Weighted Average 점수
-- 색상 코딩으로 한눈에 파악
+- **FinBERT + VADER** 하이브리드 감성 분석
+- **Plotly** 인터랙티브 차트
+- **엑셀/CSV** 다운로드 기능
 
-### 2. 뉴스 감성 분석
-- **FinBERT** + **VADER** 하이브리드 분석
-- 카테고리 자동 분류 (Earnings, M&A, Product 등)
-- 본문 요약 제공
-
-### 3. 인터랙티브 시각화
-- Plotly 기반 동적 차트
+### 📈 시각화
+- 섹터별 평균 Sentiment (색상 코딩)
+- 뉴스 개수 및 카테고리 분포
 - Word Cloud (빈도 & 감성 기여도)
 - 시계열 트렌드 분석
 
-### 4. 상세 데이터 테이블
-- 11개 컬럼 완전 표시
-- 필터링 & 정렬 기능
-- CSV 다운로드
+### 💾 데이터 관리
+- 원본 엑셀 파일 다운로드
+- CSV 내보내기
+- 섹터별 다운로드
 
 ## 🎯 지원 섹터
 
 | ETF | 섹터 | 주요 종목 |
 |-----|------|----------|
-| XLK | Technology | AAPL, MSFT, NVDA |
-| XLF | Financials | JPM, BAC, WFC |
-| XLV | Health Care | UNH, JNJ, LLY |
-| XLY | Consumer Discretionary | AMZN, TSLA, HD |
-| XLE | Energy | XOM, CVX, COP |
-| XLI | Industrials | CAT, UNP, GE |
-| XLP | Consumer Staples | PG, KO, PEP |
-| XLC | Communication Services | META, GOOGL, NFLX |
-| XLRE | Real Estate | AMT, PLD, EQIX |
-| XLB | Materials | LIN, APD, SHW |
-| XLU | Utilities | NEE, DUK, SO |
+| **XLK** | Technology | AAPL, MSFT, NVDA |
+| **XLF** | Financials | JPM, BAC, WFC |
+| **XLV** | Health Care | UNH, JNJ, LLY |
+| **XLY** | Consumer Discretionary | AMZN, TSLA, HD |
+| **XLE** | Energy | XOM, CVX, COP |
+| **XLI** | Industrials | CAT, UNP, GE |
+| **XLP** | Consumer Staples | PG, KO, PEP |
+| **XLC** | Communication Services | META, GOOGL, NFLX |
+| **XLRE** | Real Estate | AMT, PLD, EQIX |
+| **XLB** | Materials | LIN, APD, SHW |
+| **XLU** | Utilities | NEE, DUK, SO |
 
 ## 🚀 빠른 시작
 
@@ -51,85 +48,82 @@
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/YOUR_USERNAME/market-monitor.git
-cd market-monitor
+git clone https://github.com/YOUR_USERNAME/marketmonitor.git
+cd marketmonitor
 
-# 2. 가상환경 생성
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 3. 패키지 설치
+# 2. 패키지 설치
 pip install -r requirements.txt
 
-# 4. 데이터 수집 (처음 1회)
-python src/main.py
-
-# 5. 대시보드 실행
+# 3. 대시보드 실행
 streamlit run app.py
 ```
+
+**주의:** 데이터 파일(`data/reports/Market_Monitor_*.xlsx`)이 필요합니다.
 
 ## 📁 프로젝트 구조
 
 ```
-market-monitor/
+marketmonitor/
 ├── app.py                      # Streamlit 대시보드
 ├── requirements.txt            # 패키지 목록
+├── README.md                   # 프로젝트 설명
 ├── .streamlit/
 │   └── config.toml            # Streamlit 설정
-├── data/
-│   ├── Market_Monitor_latest.xlsx  # 최신 데이터
-│   └── reports/               # 과거 리포트
-├── src/
-│   ├── main.py               # 메인 실행 파일
-│   ├── collectors/           # 뉴스 수집
-│   ├── analyzers/            # 감성 분석
-│   └── reporters/            # 엑셀 생성
-└── README.md
+└── data/
+    └── reports/
+        └── Market_Monitor_*.xlsx  # 데이터 파일
 ```
 
-## 🔄 데이터 업데이트
+## 📊 데이터 형식
 
-### 자동 업데이트 (권장)
-GitHub Actions로 매일 자동 실행:
-
-```yaml
-# .github/workflows/update_data.yml
-name: Update Data
-on:
-  schedule:
-    - cron: '0 0 * * *'  # 매일 오전 9시 (KST)
-  workflow_dispatch:
-```
-
-### 수동 업데이트
-```bash
-python src/main.py
-```
-
-## 📊 데이터 소스
-
-- **뉴스**: Yahoo Finance RSS, Motley Fool, MarketWatch
-- **ETF Holdings**: Yahoo Finance API
-- **감성 분석**: FinBERT (ProsusAI/finbert) + VADER
+엑셀 파일 구조:
+- **Sheet 1: Daily News Monitor**
+  - ETF, Sector, Ticker, Company, Weight (%)
+  - Category, Title, URL, Pub Date
+  - Highlights, Sentiment
+  
+- **Sheet 2: Sentiment Trend** (선택사항)
+  - Ticker, Company
+  - Date -2, Date -1, Today
+  - Trend, Change
 
 ## 🛠️ 기술 스택
 
 - **Frontend**: Streamlit
-- **Data Processing**: Pandas
+- **Data Processing**: Pandas, NumPy
 - **Visualization**: Plotly, Matplotlib, WordCloud
-- **ML**: Transformers (FinBERT), VADER
-- **Deployment**: Streamlit Cloud + GitHub
+- **Deployment**: Streamlit Cloud
 
 ## 📈 사용 예시
 
 ### 1. 섹터 모멘텀 파악
-긍정적 감성이 높은 섹터를 빠르게 식별
+```python
+# 긍정적 감성이 높은 섹터 식별
+positive_sectors = df[df['Sentiment'] > 0.3]
+```
 
 ### 2. 개별 종목 분석
-특정 기업의 최근 뉴스 감성 추이 확인
+```python
+# 특정 기업의 최근 뉴스 감성
+company_news = df[df['Company'] == 'Apple Inc']
+```
 
 ### 3. 리스크 모니터링
-부정적 뉴스가 급증하는 섹터 조기 포착
+```python
+# 부정적 뉴스가 급증하는 섹터
+negative_surge = df[df['Sentiment'] < -0.3].groupby('Sector').size()
+```
+
+## 🎨 스크린샷
+
+### 개요 화면
+![Overview](https://via.placeholder.com/800x400?text=Overview+Screenshot)
+
+### 섹터 분석
+![Sector Analysis](https://via.placeholder.com/800x400?text=Sector+Analysis+Screenshot)
+
+### 시각화
+![Visualization](https://via.placeholder.com/800x400?text=Visualization+Screenshot)
 
 ## 🤝 기여
 
@@ -147,7 +141,7 @@ MIT License
 
 ## 📧 문의
 
-이슈를 등록해주세요: [GitHub Issues](https://github.com/YOUR_USERNAME/market-monitor/issues)
+이슈를 등록해주세요: [GitHub Issues](https://github.com/YOUR_USERNAME/marketmonitor/issues)
 
 ## ⚠️ 면책 조항
 
@@ -155,4 +149,4 @@ MIT License
 
 ---
 
-Made with ❤️ using Streamlit
+Made with ❤️ using Streamlit & Plotly
