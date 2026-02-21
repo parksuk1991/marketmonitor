@@ -1,18 +1,16 @@
+# Streamlit
 streamlit==1.31.0
+
+# 데이터 처리
 pandas==2.1.4
-plotly==5.18.0
-openpyxl==3.1.2
-wordcloud==1.9.3
-matplotlib==3.8.2
 numpy==1.26.3
+openpyxl==3.1.2
+
+# 시각화
+plotly==5.18.0
+matplotlib==3.8.2
+wordcloud==1.9.3
 Pillow==10.2.0
 
-# 데이터 수집 (옵션)
-transformers==4.37.0
-torch==2.1.2
-sentencepiece==0.1.99
-feedparser==6.0.10
-beautifulsoup4==4.12.2
-lxml==5.1.0
-vaderSentiment==3.3.2
-requests==2.31.0
+# 기타
+python-dateutil==2.8.2
