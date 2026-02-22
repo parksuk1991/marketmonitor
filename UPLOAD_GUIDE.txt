@@ -1,0 +1,64 @@
+GitHub 업로드 가이드
+==================
+
+## 파일 구조
+
+다운로드한 파일들을 다음과 같이 GitHub에 업로드하세요:
+
+```
+marketmonitor/
+├── app.py
+├── requirements.txt
+├── README.md
+├── config/
+│   ├── __init__.py
+│   └── config.py
+├── collectors/
+│   ├── __init__.py
+│   ├── sector_collector.py
+│   └── news_collector.py
+├── analyzers/
+│   ├── __init__.py
+│   └── sentiment_analyzer.py
+├── reporters/
+│   ├── __init__.py
+│   └── excel_generator_sector.py
+└── src/
+    ├── __init__.py
+    └── main.py
+```
+
+## 업로드 방법
+
+### 방법 1: GitHub Desktop (가장 쉬움)
+
+1. GitHub Desktop 설치: https://desktop.github.com
+2. File → Clone repository → parksuk1991/marketmonitor
+3. 다운로드한 모든 파일을 로컬 저장소 폴더에 복사
+4. Commit to main → Push origin
+
+### 방법 2: GitHub 웹
+
+각 폴더별로 파일 업로드:
+
+1. https://github.com/parksuk1991/marketmonitor 접속
+
+2. 루트 파일 업로드:
+   - Add file → Upload files
+   - app.py, requirements.txt, README.md 드래그
+   - Commit
+
+3. config 폴더:
+   - Add file → Create new file
+   - 파일명: config/__init__.py
+   - 내용 붙여넣기
+   - Commit
+   - 반복: config/config.py
+
+4. collectors, analyzers, reporters, src 폴더도 동일하게
+
+## 완료 확인
+
+1. https://github.com/parksuk1991/marketmonitor 에서 파일 구조 확인
+2. Streamlit Cloud 자동 재배포 대기 (5-10분)
+3. https://marketmonitor.streamlit.app 접속 테스트

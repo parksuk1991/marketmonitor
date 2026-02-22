@@ -1,0 +1,28 @@
+# Streamlit
+streamlit==1.31.0
+
+# 데이터 처리
+pandas==2.1.4
+numpy==1.26.3
+openpyxl==3.1.2
+
+# 시각화
+plotly==5.18.0
+
+# 뉴스 수집
+feedparser==6.0.10
+beautifulsoup4==4.12.2
+lxml==5.1.0
+requests==2.31.0
+
+# 감성 분석
+vaderSentiment==3.3.2
+transformers==4.37.0
+torch==2.1.2
+sentencepiece==0.1.99
+
+# 금융 데이터
+yfinance==0.2.36
+
+# 기타
+python-dateutil==2.8.2
