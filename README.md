@@ -1,53 +1,35 @@
-# 🚀 섹터 ETF 감성분석 대시보드
+🚀 ETF Holdings 감성분석 대시보드
+원하는 ETF의 Top 10 Holdings 뉴스를 FinBERT로 감성 분석
+✨ 주요 기능
 
-미국 주식 11개 섹터 ETF의 실시간 뉴스 감성 분석 시스템
+사용자 ETF 입력: 원하는 ETF 티커만 입력
+자동 Holdings 수집: Top 10 종목 자동 추출
+FinBERT 감성 분석: 금융 특화 AI 모델
+실시간 뉴스 수집: Yahoo Finance RSS
+인터랙티브 차트: Plotly 시각화
+Excel/CSV 다운로드
 
-## 📊 기능
+📊 지원 ETF
 
-- **11개 섹터 ETF** 모니터링 (XLK, XLF, XLV, XLY, XLE, XLI, XLP, XLC, XLRE, XLB, XLU)
-- **실시간 뉴스 수집** (Yahoo Finance, MarketWatch)
-- **VADER 감성 분석**
-- **카테고리 자동 분류** (Earnings, M&A, Product, Regulatory, Analyst, General)
-- **Plotly 인터랙티브 차트**
-- **Excel/CSV 다운로드**
+SPY: S&P 500
+QQQ: Nasdaq 100
+XLK, XLF, XLV: 섹터 ETF
+VTI, VOO: Vanguard ETF
+IWM, DIA: 기타 주요 ETF
 
-## 🚀 Streamlit Cloud 배포
+🚀 사용 방법
 
-현재 배포된 앱: [marketmonitor.streamlit.app](https://marketmonitor.streamlit.app)
+ETF 티커 입력 (예: SPY, QQQ)
+"분석 시작" 버튼 클릭
+약 30초 후 결과 확인
 
-## 📁 프로젝트 구조
+🛠️ 기술 스택
 
-```
-marketmonitor/
-├── app.py                          # Streamlit 대시보드
-├── requirements.txt                # 패키지 목록
-├── config/
-│   └── config.py                   # 설정
-├── collectors/
-│   ├── sector_collector.py         # ETF Holdings 수집
-│   └── news_collector.py           # 뉴스 수집
-├── analyzers/
-│   └── sentiment_analyzer.py       # 감성 분석
-├── reporters/
-│   └── excel_generator_sector.py   # 엑셀 생성
-└── src/
-    └── main.py                     # 파이프라인
-```
+Streamlit: 대시보드
+FinBERT: 감성 분석
+yfinance: Holdings 수집
+feedparser: 뉴스 수집
+Plotly: 차트
 
-## 🛠️ 로컬 실행
-
-```bash
-# 1. 저장소 클론
-git clone https://github.com/parksuk1991/marketmonitor.git
-cd marketmonitor
-
-# 2. 패키지 설치
-pip install -r requirements.txt
-
-# 3. Streamlit 실행
-streamlit run app.py
-```
-
-## 📝 라이선스
-
+📝 라이선스
 MIT License
