@@ -16,7 +16,6 @@ lxml==5.1.0
 requests==2.31.0
 
 # 감성 분석
-vaderSentiment==3.3.2
 transformers==4.37.0
 torch==2.1.2
 sentencepiece==0.1.99
@@ -26,3 +25,5 @@ yfinance==0.2.36
 
 # 기타
 python-dateutil==2.8.2
+
+
