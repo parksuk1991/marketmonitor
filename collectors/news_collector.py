@@ -1,6 +1,6 @@
 """
 뉴스 수집기 (검증된 버전)
-본문 추출 + Highlights 생성
+Yahoo Finance + MarketWatch
 """
 import feedparser
 import requests
@@ -11,17 +11,17 @@ from bs4 import BeautifulSoup
 import re
 
 class NewsCollector:
-    """뉴스 수집 + 본문 추출"""
+    """뉴스 수집기"""
     
     def __init__(self, days=3):
         self.days = days
         self.cutoff_date = datetime.now() - timedelta(days=days)
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
     
     def extract_content(self, url: str) -> str:
-        """본문 추출 (간단 버전)"""
+        """본문 추출"""
         try:
             response = requests.get(url, headers=self.headers, timeout=8)
             if response.status_code != 200:
@@ -29,18 +29,15 @@ class NewsCollector:
             
             soup = BeautifulSoup(response.text, 'html.parser')
             
-            # 본문 찾기
-            for tag in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+            # 불필요한 태그 제거
+            for tag in soup(['script', 'style', 'nav', 'header', 'footer']):
                 tag.decompose()
             
-            # p 태그들 수집
+            # p 태그 수집
             paragraphs = soup.find_all('p')
             text = ' '.join([p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 30])
             
-            if text:
-                return text[:2000]  # 최대 2000자
-            
-            return ""
+            return text[:2000] if text else ""
         except:
             return ""
     
@@ -49,9 +46,7 @@ class NewsCollector:
         if not text or len(text) < 20:
             return ""
         
-        # 문장 단위 분리
         sentences = re.split(r'[.!?]\s+', text)
-        
         result = []
         total_len = 0
         
@@ -79,7 +74,6 @@ class NewsCollector:
             news = []
             for entry in feed.entries[:5]:
                 try:
-                    # 날짜 파싱
                     pub_date = entry.get('published_parsed')
                     if pub_date:
                         pub_dt = datetime(*pub_date[:6])
@@ -102,27 +96,23 @@ class NewsCollector:
                     elif summary:
                         highlights = self.create_highlights(summary)
                     else:
-                        highlights = title[:200] if len(title) > 200 else title
+                        highlights = title[:200]
                     
                     news.append({
                         'ticker': ticker,
                         'title': title,
                         'url': article_url,
                         'published_at': date_str,
-                        'summary': summary[:500] if summary else "",
+                        'summary': summary[:500],
                         'content': content,
                         'highlights': highlights,
                         'source': 'Yahoo Finance'
                     })
-                    
-                except Exception as e:
-                    print(f"  ⚠️ Entry 처리 오류: {e}")
+                except:
                     continue
             
             return news
-            
-        except Exception as e:
-            print(f"  ⚠️ Yahoo RSS 오류: {e}")
+        except:
             return []
     
     def collect_marketwatch(self, ticker: str) -> List[Dict]:
@@ -164,12 +154,10 @@ class NewsCollector:
                         'highlights': highlights,
                         'source': 'MarketWatch'
                     })
-                    
                 except:
                     continue
             
             return news
-            
         except:
             return []
     
@@ -177,11 +165,11 @@ class NewsCollector:
         """티커별 뉴스 수집"""
         all_news = []
         
-        # Yahoo Finance (주요 소스)
+        # Yahoo Finance
         yahoo_news = self.collect_yahoo_rss(ticker)
         all_news.extend(yahoo_news)
         
-        # MarketWatch
+        # MarketWatch (Yahoo가 적으면)
         if len(all_news) < 3:
             mw_news = self.collect_marketwatch(ticker)
             all_news.extend(mw_news)
