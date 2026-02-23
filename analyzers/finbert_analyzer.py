@@ -1,5 +1,5 @@
 """
-FinBERT 감성 분석기 (본문 우선)
+FinBERT 감성 분석기
 """
 from transformers import pipeline
 import re
@@ -36,7 +36,7 @@ class FinBERTAnalyzer:
             text = re.sub(r'http\S+', '', text)
             text = re.sub(r'\s+', ' ', text).strip()
             
-            # 분석 (최대 512 토큰)
+            # 분석
             result = self.pipe(text[:512])[0]
             
             label = result['label']
@@ -53,7 +53,6 @@ class FinBERTAnalyzer:
     
     def analyze_comprehensive(self, title: str, content: str, summary: str = "") -> float:
         """종합 분석 (본문 우선)"""
-        # 본문 > 요약 > 제목
         if content and len(content) > 100:
             text = f"{title}. {content}"
             return self.analyze(text)
@@ -88,8 +87,6 @@ class FinBERTAnalyzer:
         
         # 본문 기반 감성 분석
         sentiment = self.analyze_comprehensive(title, content, summary)
-        
-        # 카테고리
         category = self.categorize(title)
         
         news['sentiment_score'] = round(sentiment, 4)
