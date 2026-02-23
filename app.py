@@ -1,5 +1,5 @@
 """
-ETF Holdings 감성분석 대시보드 (최종)
+ETF Holdings 감성분석 대시보드
 """
 import streamlit as st
 import pandas as pd
@@ -36,42 +36,42 @@ def run_single_etf(etf_ticker: str):
         from collectors.news_collector import NewsCollector
         
         print(f"\n{'='*60}")
-        print(f"🔄 {etf_ticker} 처리 시작")
+        print(f"🔄 {etf_ticker} 처리")
         print(f"{'='*60}")
         
-        # Holdings 수집
+        # Holdings
         collector = ETFCollector()
-        holdings = collector.get_etf_holdings(etf_ticker, top_n=10)
+        holdings = collector.get_etf_holdings(etf_ticker)
         
         if not holdings:
             return None, None, None, None, f"❌ {etf_ticker}: Holdings 없음"
         
         etf_name = collector.get_etf_name(etf_ticker)
-        sector_weights = collector.get_etf_sector_weightings(etf_ticker)
+        sectors = collector.get_etf_sector_weightings(etf_ticker)
         
-        # 뉴스 수집
-        print(f"\n📰 뉴스 수집 중...")
+        # 뉴스
+        print(f"\n📰 뉴스 수집...")
         news_collector = NewsCollector(days=3)
         all_news = news_collector.collect_all(holdings, etf_ticker)
         
         if not all_news:
-            return holdings, etf_name, sector_weights, None, f"⚠️ {etf_ticker}: 뉴스 없음"
+            return holdings, etf_name, sectors, None, f"⚠️ {etf_ticker}: 뉴스 없음"
         
         # 감성 분석
-        print(f"\n🤖 감성 분석 중...")
+        print(f"\n🤖 감성 분석...")
         analyzer = load_analyzer()
         analyzed = analyzer.batch_analyze(all_news)
         
-        return holdings, etf_name, sector_weights, analyzed, None
+        return holdings, etf_name, sectors, analyzed, None
         
     except Exception as e:
         import traceback
-        error = f"❌ {etf_ticker} 오류: {e}\n{traceback.format_exc()}"
+        error = f"❌ {etf_ticker}: {e}\n{traceback.format_exc()}"
         print(error)
         return None, None, None, None, error
 
 def run_multiple_etf(etf_list: list):
-    """복수 ETF 처리"""
+    """복수 ETF"""
     all_holdings = {}
     all_news = []
     all_sectors = {}
@@ -95,9 +95,8 @@ def run_multiple_etf(etf_list: list):
                 all_news.extend(news)
     
     if not all_news:
-        return None, None, None, None, "❌ 모든 ETF에서 뉴스를 찾을 수 없습니다"
+        return None, None, None, None, "❌ 모든 ETF에서 뉴스 없음"
     
-    # DataFrame 생성
     df_list = []
     for news in all_news:
         df_list.append({
@@ -151,7 +150,7 @@ def main():
         st.info("""
         **사용법:**
         - 단일: `SPY`
-        - 복수: `SPY, QQQ, XLK`
+        - 복수: `SPY, QQQ`
         
         **특징:**
         - Highlights: 본문 요약
@@ -159,20 +158,18 @@ def main():
         - Yahoo + MarketWatch
         """)
     
-    # 세션 상태
     if 'df_news' not in st.session_state:
         st.session_state.df_news = None
         st.session_state.all_holdings = None
         st.session_state.etf_names = None
     
-    # 분석 실행
     if st.session_state.get('run_analysis', False):
         st.session_state.run_analysis = False
         
         etf_list = st.session_state.etf_list
         etf_str = ', '.join(etf_list)
         
-        with st.spinner(f"{etf_str} 분석 중... ({len(etf_list) * 60}초)"):
+        with st.spinner(f"{etf_str} 분석 중..."):
             holdings, names, sectors, df, error = run_multiple_etf(etf_list)
             
             if error:
@@ -197,11 +194,9 @@ def main():
         """)
         return
     
-    # 데이터 표시
     df = st.session_state.df_news
     holdings = st.session_state.all_holdings
     names = st.session_state.etf_names
-    sectors = st.session_state.all_sectors
     etf_list = st.session_state.etf_list
     
     tab1, tab2, tab3, tab4 = st.tabs(["📊 개요", "📈 Holdings", "📰 뉴스", "💾 다운로드"])
@@ -228,7 +223,6 @@ def main():
         
         st.markdown("---")
         
-        # 종목별 차트
         ticker_avg = df.groupby('Ticker')['Sentiment'].mean().sort_values().tail(15)
         colors = ['#f44336' if x < -0.2 else '#4CAF50' if x > 0.2 else '#FFC107' for x in ticker_avg]
         
@@ -242,7 +236,7 @@ def main():
         st.header("📈 Holdings")
         
         if len(etf_list) > 1:
-            etf = st.selectbox("ETF 선택", etf_list)
+            etf = st.selectbox("ETF", etf_list)
         else:
             etf = etf_list[0]
         
