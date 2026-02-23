@@ -1,7 +1,7 @@
 # Streamlit
 streamlit==1.31.0
 
-# 데이터 처리
+# 데이터
 pandas==2.1.4
 numpy==1.26.3
 openpyxl==3.1.2
@@ -15,15 +15,15 @@ beautifulsoup4==4.12.2
 lxml==5.1.0
 requests==2.31.0
 
-# 감성 분석
+# yahooquery (실시간 Holdings)
+yahooquery==2.3.7
+curl_cffi==0.6.2
+
+# FinBERT
 transformers==4.37.0
 torch==2.1.2
 sentencepiece==0.1.99
 
-# 금융 데이터
-yfinance==0.2.36
-
 # 기타
 python-dateutil==2.8.2
-
-
+urllib3==2.1.0
