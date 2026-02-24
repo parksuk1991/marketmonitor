@@ -8,22 +8,18 @@ openpyxl==3.1.2
 
 # 시각화
 plotly==5.18.0
-matplotlib==3.8.2
-wordcloud==1.9.3
-Pillow==10.2.0
 
 # 뉴스 수집
 feedparser==6.0.10
 beautifulsoup4==4.12.2
-# yahooquery와의 호환성을 위해 4.9.3 이상 5.0.0 미만으로 설정
-lxml>=4.9.3,<5.0.0 
+lxml==5.1.0
 requests==2.31.0
 
-# yahooquery (실시간 Holdings)
+# yahooquery
 yahooquery==2.3.7
 curl_cffi==0.6.2
 
-# FinBERT
+# FinBERT (경량 설정)
 transformers==4.37.0
 torch==2.1.2
 sentencepiece==0.1.99
