@@ -1,25 +1,27 @@
 """
-FinBERT 분석기 (본문 전체 필수)
-본문 없으면 분석 안 함
+FinBERT 분석기 (경량 버전)
+메모리 최적화
 """
 from transformers import pipeline
 import re
 
 class FinBERTAnalyzer:
-    """FinBERT 감성 분석 (본문 필수)"""
+    """경량 FinBERT"""
     
     def __init__(self):
         self.pipe = None
         self._initialize()
     
     def _initialize(self):
-        """모델 로드"""
+        """모델 로드 (한 번만)"""
         try:
             print("📊 FinBERT 로드 중...")
             self.pipe = pipeline(
                 "text-classification",
                 model="ProsusAI/finbert",
-                device=-1
+                device=-1,
+                max_length=512,
+                truncation=True
             )
             print("✅ FinBERT 로드 완료")
         except Exception as e:
@@ -32,10 +34,12 @@ class FinBERTAnalyzer:
             return 0.0
         
         try:
+            # 전처리
             text = re.sub(r'<[^>]+>', '', text)
             text = re.sub(r'http\S+', '', text)
             text = re.sub(r'\s+', ' ', text).strip()
             
+            # 분석 (512자로 제한)
             result = self.pipe(text[:512])[0]
             
             label = result['label']
@@ -50,124 +54,79 @@ class FinBERTAnalyzer:
         except:
             return 0.0
     
-    def analyze_full_text(self, text: str) -> float:
-        """본문 전체 분석 (청크 방식)"""
+    def analyze_text(self, text: str) -> float:
+        """
+        텍스트 분석 (최대 3개 청크)
+        """
         if not text or len(text) < 100:
-            return None  # 본문 없으면 None 반환
+            return 0.0
         
-        # 청크로 분리
-        chunk_size = 1500
-        sentences = re.split(r'[.!?]\s+', text)
+        # 청크 크기 (1000자)
+        chunk_size = 1000
         
+        # 최대 3개 청크만
         chunks = []
-        current_chunk = []
-        current_length = 0
-        
-        for sentence in sentences:
-            sentence = sentence.strip()
-            if not sentence:
-                continue
-            
-            if current_length + len(sentence) < chunk_size:
-                current_chunk.append(sentence)
-                current_length += len(sentence)
-            else:
-                if current_chunk:
-                    chunks.append('. '.join(current_chunk))
-                current_chunk = [sentence]
-                current_length = len(sentence)
-        
-        if current_chunk:
-            chunks.append('. '.join(current_chunk))
+        for i in range(0, min(len(text), 3000), chunk_size):
+            chunk = text[i:i+chunk_size]
+            if len(chunk) > 100:
+                chunks.append(chunk)
         
         # 각 청크 분석
         scores = []
-        for chunk in chunks[:5]:
+        for chunk in chunks[:3]:  # 최대 3개
             score = self.analyze_chunk(chunk)
-            if score != 0.0:  # 0이 아닌 점수만
+            if score != 0.0:
                 scores.append(score)
         
         if scores:
-            avg_score = sum(scores) / len(scores)
-            print(f"      감성: {len(chunks)}개 청크, 평균 {avg_score:.4f}")
-            return avg_score
+            return sum(scores) / len(scores)
         
         return 0.0
     
-    def analyze_article(self, content: str) -> float:
-        """
-        기사 감성 분석 (본문 필수)
-        
-        본문이 없으면 None 반환 → 분석 제외
-        """
-        if not content or len(content) < 100:
-            return None  # 본문 없으면 분석 안 함
-        
-        return self.analyze_full_text(content)
-    
     def categorize(self, title: str) -> str:
-        """카테고리 분류"""
+        """카테고리"""
         title_lower = title.lower()
         
-        if any(w in title_lower for w in ['earnings', 'revenue', 'profit', 'eps', 'quarterly']):
+        if any(w in title_lower for w in ['earnings', 'revenue', 'profit']):
             return 'Earnings'
-        elif any(w in title_lower for w in ['merger', 'acquisition', 'deal', 'buyout']):
+        elif any(w in title_lower for w in ['merger', 'acquisition', 'deal']):
             return 'M&A'
-        elif any(w in title_lower for w in ['product', 'launch', 'release', 'unveil']):
+        elif any(w in title_lower for w in ['product', 'launch']):
             return 'Product'
-        elif any(w in title_lower for w in ['regulation', 'lawsuit', 'legal', 'fda', 'sec']):
+        elif any(w in title_lower for w in ['regulation', 'lawsuit']):
             return 'Regulatory'
-        elif any(w in title_lower for w in ['analyst', 'upgrade', 'downgrade', 'rating']):
+        elif any(w in title_lower for w in ['analyst', 'upgrade', 'downgrade']):
             return 'Analyst'
         else:
             return 'General'
     
     def analyze_news(self, news: dict) -> dict:
-        """뉴스 분석 (본문 필수)"""
-        title = news.get('title', '')
+        """뉴스 분석"""
         content = news.get('content', '')
         
-        # 본문 검증
+        # 본문 있는지 체크
         if not content or len(content) < 100:
-            print(f"      ❌ 본문 없음, 분석 제외")
-            news['sentiment_score'] = None
-            news['category'] = 'Invalid'
-            news['analyzed'] = False
-            return news
+            return None
         
-        print(f"      분석 중... (본문 {len(content)}자)")
+        # 본문 분석
+        sentiment = self.analyze_text(content)
         
-        # 본문 전체 감성 분석
-        sentiment = self.analyze_article(content)
-        
-        if sentiment is None:
-            print(f"      ❌ 분석 실패")
-            news['sentiment_score'] = None
-            news['category'] = 'Invalid'
-            news['analyzed'] = False
-        else:
-            news['sentiment_score'] = round(sentiment, 4)
-            news['category'] = self.categorize(title)
-            news['analyzed'] = True
+        news['sentiment_score'] = round(sentiment, 4)
+        news['category'] = self.categorize(news.get('title', ''))
         
         return news
     
     def batch_analyze(self, news_list: list) -> list:
-        """일괄 분석 (본문 있는 것만)"""
+        """일괄 분석"""
         analyzed = []
-        total = len(news_list)
-        
-        print(f"\n🤖 감성 분석 시작 (본문 필수)")
         
         for idx, news in enumerate(news_list):
-            print(f"  [{idx + 1}/{total}] {news.get('ticker', '')}...")
+            if (idx + 1) % 5 == 0:
+                print(f"  분석: {idx + 1}/{len(news_list)}")
             
-            analyzed_news = self.analyze_news(news)
-            
-            # 분석된 것만 추가
-            if analyzed_news.get('analyzed', False):
-                analyzed.append(analyzed_news)
+            result = self.analyze_news(news)
+            if result:
+                analyzed.append(result)
         
-        print(f"✅ {len(analyzed)}/{total}개 분석 완료 (본문 기반)")
-        
+        print(f"✅ {len(analyzed)}개 분석 완료")
         return analyzed
