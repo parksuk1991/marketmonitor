@@ -1,66 +1,75 @@
 """
-ETF Holdings 수집기 (세션 문제 해결)
+ETF Collector (안정화 버전)
+재시도 로직 추가
 """
 import ssl
 import urllib3
 from yahooquery import Ticker
 from typing import List, Dict
+import time
 
-# SSL 설정
 ssl._create_default_https_context = ssl._create_unverified_context
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class ETFCollector:
-    """ETF Holdings 수집"""
+    """안정화된 ETF Collector"""
     
     def __init__(self):
-        # 매번 새로운 세션 생성하지 않음
         try:
             from curl_cffi import requests as cffi_requests
             self.session = cffi_requests.Session(impersonate="chrome")
             self.session.verify = False
-            print("✓ ETF 수집기 초기화 (curl_cffi)")
+            print("✓ ETF 수집기 초기화")
         except:
             self.session = None
             print("✓ ETF 수집기 초기화 (기본)")
     
-    def get_etf_holdings(self, ticker: str) -> List[Dict]:
+    def get_etf_holdings(self, ticker: str, retry=3) -> List[Dict]:
         """
-        Holdings 가져오기 (매번 새로 호출)
+        Holdings 가져오기 (재시도 로직)
         """
-        try:
-            # 매번 새로운 Ticker 객체 생성
-            if self.session:
-                etf = Ticker(ticker, session=self.session)
-            else:
-                etf = Ticker(ticker)
-            
-            holdings = etf.fund_holding_info
-            
-            if ticker in holdings and 'holdings' in holdings[ticker]:
-                top_holdings = holdings[ticker]['holdings'][:10]
+        for attempt in range(retry):
+            try:
+                # 매번 새로운 Ticker 객체
+                if self.session:
+                    etf = Ticker(ticker, session=self.session)
+                else:
+                    etf = Ticker(ticker)
                 
-                result = []
-                for holding in top_holdings:
-                    symbol = holding.get('symbol', '')
-                    weight = holding.get('holdingPercent', 0.0)
+                holdings = etf.fund_holding_info
+                
+                if ticker in holdings and 'holdings' in holdings[ticker]:
+                    top_holdings = holdings[ticker]['holdings'][:10]
                     
-                    if symbol:
-                        result.append({
-                            'ticker': symbol,
-                            'name': holding.get('holdingName', symbol),
-                            'weight': weight * 100
-                        })
+                    result = []
+                    for holding in top_holdings:
+                        symbol = holding.get('symbol', '')
+                        weight = holding.get('holdingPercent', 0.0)
+                        
+                        if symbol:
+                            result.append({
+                                'ticker': symbol,
+                                'name': holding.get('holdingName', symbol),
+                                'weight': weight * 100
+                            })
+                    
+                    if result:
+                        print(f"  ✅ {ticker}: {len(result)}개 종목")
+                        return result
                 
-                print(f"  ✅ {ticker}: {len(result)}개 종목")
-                return result
-            else:
-                print(f"  ❌ {ticker}: Holdings 정보 없음")
-                return []
+                # Holdings 없으면 재시도
+                if attempt < retry - 1:
+                    print(f"  ⚠️ {ticker}: 재시도 {attempt + 1}/{retry}")
+                    time.sleep(2)
                 
-        except Exception as e:
-            print(f"  ❌ {ticker}: {str(e)[:100]}")
-            return []
+            except Exception as e:
+                if attempt < retry - 1:
+                    print(f"  ⚠️ {ticker}: 재시도 {attempt + 1}/{retry}")
+                    time.sleep(2)
+                else:
+                    print(f"  ❌ {ticker}: {str(e)[:50]}")
+        
+        return []
     
     def get_etf_name(self, ticker: str) -> str:
         """ETF 이름"""
