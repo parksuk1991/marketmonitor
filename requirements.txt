@@ -1,32 +1,29 @@
 # Streamlit
-streamlit==1.31.0
+streamlit>=1.31.0
 
 # 데이터
-pandas==2.1.4
-numpy==1.26.3
-openpyxl==3.1.2
+pandas>=2.1.0
+numpy>=1.26.0
+openpyxl>=3.1.0
 
 # 시각화
-plotly==5.18.0
+plotly>=5.18.0
 
 # 뉴스 수집
-feedparser==6.0.10
-beautifulsoup4==4.12.2
-lxml==5.1.0
-requests==2.31.0
+feedparser>=6.0.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+requests>=2.31.0
 
 # yahooquery
-yahooquery==2.3.7
-curl_cffi==0.6.2
+yahooquery>=2.3.0
+curl-cffi>=0.6.0
 
-# FinBERT (경량 설정)
-transformers==4.37.0
-torch==2.1.2
-sentencepiece==0.1.99
+# FinBERT
+transformers>=4.30.0
+torch>=2.1.0
+sentencepiece>=0.1.99
 
 # 기타
-python-dateutil==2.8.2
-urllib3==2.1.0
-# Streamlit 1.31.0과의 호환성을 위해 추가
-rich>=10.14.0,<14.0.0
-
+python-dateutil>=2.8.0
+urllib3>=2.0.0
