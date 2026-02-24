@@ -1,5 +1,5 @@
 """
-FinBERT 감성 분석기
+FinBERT 감성 분석기 (본문만 분석)
 """
 from transformers import pipeline
 import re
@@ -51,14 +51,21 @@ class FinBERTAnalyzer:
         except:
             return 0.0
     
-    def analyze_comprehensive(self, title: str, content: str, summary: str = "") -> float:
-        """종합 분석 (본문 우선)"""
+    def analyze_article(self, title: str, content: str, summary: str = "") -> float:
+        """
+        기사 감성 분석 (본문만 사용)
+        
+        우선순위: 본문만 > 요약만 > 제목만 (어쩔 수 없는 경우)
+        """
+        # 1. 본문이 있으면 본문만 사용 (제목 제외!)
         if content and len(content) > 100:
-            text = f"{title}. {content}"
-            return self.analyze(text)
+            return self.analyze(content)
+        
+        # 2. 본문 없으면 요약만
         elif summary and len(summary) > 50:
-            text = f"{title}. {summary}"
-            return self.analyze(text)
+            return self.analyze(summary)
+        
+        # 3. 둘 다 없으면 제목 (어쩔 수 없음)
         else:
             return self.analyze(title)
     
@@ -85,8 +92,8 @@ class FinBERTAnalyzer:
         content = news.get('content', '')
         summary = news.get('summary', '')
         
-        # 본문 기반 감성 분석
-        sentiment = self.analyze_comprehensive(title, content, summary)
+        # 본문만 감성 분석
+        sentiment = self.analyze_article(title, content, summary)
         category = self.categorize(title)
         
         news['sentiment_score'] = round(sentiment, 4)
