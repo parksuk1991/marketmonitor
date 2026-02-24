@@ -1,14 +1,12 @@
 """
-ETF Holdings 수집기 (검증된 버전)
-이전에 작동했던 코드 그대로 사용
+ETF Holdings 수집기 (세션 문제 해결)
 """
 import ssl
 import urllib3
 from yahooquery import Ticker
-from curl_cffi import requests as cffi_requests
-from typing import Dict, List
+from typing import List, Dict
 
-# SSL 검증 비활성화
+# SSL 설정
 ssl._create_default_https_context = ssl._create_unverified_context
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -16,21 +14,27 @@ class ETFCollector:
     """ETF Holdings 수집"""
     
     def __init__(self):
-        self.session = cffi_requests.Session(impersonate="chrome")
-        self.session.verify = False
-        print("✓ ETF Holdings 수집기 초기화")
+        # 매번 새로운 세션 생성하지 않음
+        try:
+            from curl_cffi import requests as cffi_requests
+            self.session = cffi_requests.Session(impersonate="chrome")
+            self.session.verify = False
+            print("✓ ETF 수집기 초기화 (curl_cffi)")
+        except:
+            self.session = None
+            print("✓ ETF 수집기 초기화 (기본)")
     
     def get_etf_holdings(self, ticker: str) -> List[Dict]:
         """
-        ETF Top 10 Holdings 가져오기
-        
-        Returns:
-            [{'symbol': 'AAPL', 'weight': 0.25, 'name': 'Apple Inc'}, ...]
+        Holdings 가져오기 (매번 새로 호출)
         """
         try:
-            etf = Ticker(ticker, session=self.session)
+            # 매번 새로운 Ticker 객체 생성
+            if self.session:
+                etf = Ticker(ticker, session=self.session)
+            else:
+                etf = Ticker(ticker)
             
-            # Holdings 정보
             holdings = etf.fund_holding_info
             
             if ticker in holdings and 'holdings' in holdings[ticker]:
@@ -44,24 +48,28 @@ class ETFCollector:
                     if symbol:
                         result.append({
                             'ticker': symbol,
-                            'weight': weight * 100,  # 퍼센트로 변환
-                            'name': holding.get('holdingName', symbol)
+                            'name': holding.get('holdingName', symbol),
+                            'weight': weight * 100
                         })
                 
-                print(f"  {ticker}: {len(result)}개 종목")
+                print(f"  ✅ {ticker}: {len(result)}개 종목")
                 return result
             else:
-                print(f"  {ticker}: Holdings 정보 없음")
+                print(f"  ❌ {ticker}: Holdings 정보 없음")
                 return []
                 
         except Exception as e:
-            print(f"  {ticker}: 오류 - {str(e)[:50]}")
+            print(f"  ❌ {ticker}: {str(e)[:100]}")
             return []
     
     def get_etf_name(self, ticker: str) -> str:
-        """ETF 이름 가져오기"""
+        """ETF 이름"""
         try:
-            etf = Ticker(ticker, session=self.session)
+            if self.session:
+                etf = Ticker(ticker, session=self.session)
+            else:
+                etf = Ticker(ticker)
+            
             quote_type = etf.quote_type
             
             if ticker in quote_type:
@@ -72,11 +80,15 @@ class ETFCollector:
             return f'{ticker} ETF'
     
     def get_etf_sector_weightings(self, ticker: str):
-        """섹터 비중 가져오기"""
+        """섹터 비중"""
         try:
             import pandas as pd
             
-            etf = Ticker(ticker, session=self.session)
+            if self.session:
+                etf = Ticker(ticker, session=self.session)
+            else:
+                etf = Ticker(ticker)
+            
             sector_data = etf.fund_sector_weightings
             
             if ticker in sector_data:
